@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
+	"sort"
 	"github.com/mailhog/data"
 )
 
@@ -138,6 +138,28 @@ func (maildir *Maildir) List(start, limit int) (*data.Messages, error) {
 	if err != nil {
 		return nil, err
 	}
+	
+	// Start
+	    sort.Slice(n, func(i, j int) bool {
+		return !n[i].ModTime().Before(n[j].ModTime())
+	    })
+
+	    if start < 0 {
+		start = 0
+	    }
+
+	    if len(n) < start+limit {
+		limit = len(n) - start
+	    }
+
+	    if len(n) > start && start > 0 {
+		n = n[start:]
+	    }
+
+	    if len(n) > limit {
+		n = n[:limit]
+	    }
+	    // End
 
 	for _, fileinfo := range n {
 		b, err := ioutil.ReadFile(filepath.Join(maildir.Path, fileinfo.Name()))
