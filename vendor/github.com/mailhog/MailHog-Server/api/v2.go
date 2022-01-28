@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-
+	"sort"
 	"github.com/gorilla/pat"
 	"github.com/ian-kent/go-log/log"
 	"github.com/mailhog/MailHog-Server/config"
@@ -115,6 +115,11 @@ func (apiv2 *APIv2) messages(w http.ResponseWriter, req *http.Request) {
 	res.Items = []data.Message(*messages)
 	res.Total = apiv2.config.Storage.Count()
 
+	log.Println("Attempting sort")
+	sort.Slice(res.Items, func(i, j int) bool{
+		return res.Items[i].Created.After(res.Items[j].Created)
+	})
+	
 	bytes, _ := json.Marshal(res)
 	w.Header().Add("Content-Type", "text/json")
 	w.Write(bytes)
